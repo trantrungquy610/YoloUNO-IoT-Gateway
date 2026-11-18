@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>YoloUNO IoT Gateway</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+<header><div><p class="eyebrow">LOCAL EDGE PLATFORM</p><h1>YoloUNO Gateway</h1><p class="sub">Giám sát và điều khiển thiết bị trong mạng nội bộ</p></div><span id="connection" class="pill">Đang kiểm tra...</span></header>
+<main>
+  <section class="summary">
+    <article><span>Thiết bị đã ghi nhận</span><strong id="device-count">0</strong></article>
+    <article><span>Bản tin gần đây</span><strong id="message-count">0</strong></article>
+    <article><span>MQTT local</span><strong class="small" id="mqtt-status">Đang kiểm tra</strong></article>
+  </section>
+  <section><div class="section-head"><h2>Thiết bị local</h2><button onclick="refresh()">Làm mới</button></div><div id="devices" class="device-grid"><p class="muted">Chưa nhận dữ liệu từ thiết bị.</p></div></section>
+  <section><div class="section-head"><h2>Dữ liệu telemetry mới nhất</h2></div><div class="table-wrap"><table><thead><tr><th>Thiết bị</th><th>Nhiệt độ</th><th>Độ ẩm</th><th>Thời gian nhận</th></tr></thead><tbody id="telemetry"><tr><td colspan="4">Chưa có dữ liệu</td></tr></tbody></table></div></section>
+</main>
+<footer>YoloUNO IoT Gateway · Local dashboard</footer>
+<script src="/static/app.js"></script>
+</body></html>

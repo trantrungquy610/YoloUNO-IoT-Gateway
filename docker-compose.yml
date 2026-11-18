@@ -1,0 +1,62 @@
+services:
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: yolouno-mosquitto
+    restart: unless-stopped
+    ports:
+      - "1883:1883"
+    volumes:
+      - ./mosquitto/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+      - mosquitto_data:/mosquitto/data
+      - mosquitto_log:/mosquitto/log
+    networks:
+      - yolouno-net
+
+  tb-gateway:
+    image: thingsboard/tb-gateway:3.7-stable
+    container_name: tb-gateway
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      - host=app.coreiot.io
+      - port=1883
+      - accessToken=${COREIOT_GATEWAY_TOKEN:?Please_set_COREIOT_GATEWAY_TOKEN_in_.env}
+    volumes:
+      - tb-gw-config:/thingsboard_gateway/config
+      - tb-gw-logs:/thingsboard_gateway/logs
+      - tb-gw-extensions:/thingsboard_gateway/extensions
+    networks:
+      - yolouno-net
+
+  dashboard:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: yolouno-dashboard
+    restart: unless-stopped
+    depends_on:
+      - mosquitto
+    environment:
+      - LOCAL_MQTT_HOST=mosquitto
+      - LOCAL_MQTT_PORT=1883
+      - DATABASE_PATH=/app/data/gateway.db
+      - GATEWAY_ID=yolouno-gateway-01
+    ports:
+      - "8000:8000"
+    volumes:
+      - dashboard_data:/app/data
+    networks:
+      - yolouno-net
+
+networks:
+  yolouno-net:
+    driver: bridge
+
+volumes:
+  mosquitto_data:
+  mosquitto_log:
+  tb-gw-config:
+  tb-gw-logs:
+  tb-gw-extensions:
+  dashboard_data:
