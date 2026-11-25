@@ -70,6 +70,11 @@ Sau khi container `tb-gateway` chạy và kết nối Cloud thành công:
    - Time series:
      - Key `temperature`, type `Double`, value `${temperature}`
      - Key `humidity`, type `Double`, value `${humidity}`
+      - Key `gesture`, type `String`, value `${gesture}`
+      - Key `confidence`, type `Double`, value `${confidence}`
+      - Key `inference_ms`, type `Long`, value `${inference_ms}`
+      - Key `gesture_count`, type `Long`, value `${gesture_count}`
+      - Key `fan_speed_percent`, type `Long`, value `${fan_speed_percent}`
 6. Save connector configuration. Gateway sẽ nhận cấu hình từ CoreIoT.
 
 Nếu firmware gửi `temp`/`hum` thay vì `temperature`/`humidity`, đổi hai JSON path tương ứng trong connector hoặc thống nhất tên field trong firmware.
@@ -80,15 +85,16 @@ Trong MQTT Connector -> Requests mapping -> Add mapping -> RPC command:
 
 - Request type: `Without response` (One Way)
 - Device name filter: `.*`
-- Method filter: `setLedSwitchValue`
+- Method filter: `setFanSpeed`
 - Request topic expression: `yolouno/${deviceName}/command`
 - Value expression: `{"method":"${methodName}","params":${params}}`
 
-Lưu cấu hình. Khi gọi RPC trên thiết bị có tên đúng bằng `esp32_01`, ví dụ:
+
+Lưu cấu hình. Khi gọi RPC trên thiết bị có tên đúng bằng `esp32_01`, gửi tốc độ quạt dạng số nguyên từ 0 đến 100:
 ```json
-{"method":"setLedSwitchValue","params":true}
+{"method":"setFanSpeed","params":75}
 ```
-Gateway publish lệnh lên topic:
+`params:0` sẽ tắt quạt, `params:100` đặt tốc độ tối đa. Gateway publish lệnh lên topic:
 `yolouno/esp32_01/command`
 
 ESP32 cần subscribe topic này và xử lý JSON có hai trường `method`, `params`.
@@ -97,13 +103,13 @@ Nếu giao diện cấu hình RPC của phiên bản CoreIoT không chấp nhậ
 
 ## 5. Topic contract cho firmware ESP32
 
-Device ID dùng làm tên thiết bị trên CoreIoT, ví dụ `esp32_01`.
+Device ID phải trùng chính xác với tên thiết bị đã có trên CoreIoT: `esp32_01`.
 
 Telemetry:
 - Topic: `yolouno/esp32_01/telemetry`
 - Payload:
 ```json
-{"temperature":26.4,"humidity":58.1}
+{"temperature":26.4,"humidity":58.1,"gesture":"open_palm","confidence":0.96,"inference_ms":42,"gesture_count":12,"fan_speed_percent":75}
 ```
 
 Status (tùy chọn):
@@ -113,12 +119,14 @@ Status (tùy chọn):
 {"online":true}
 ```
 
-Command:
+Lệnh đặt tốc độ quạt:
 - Subscribe: `yolouno/esp32_01/command`
 - Payload:
 ```json
-{"method":"setLedSwitchValue","params":true}
+{"method":"setFanSpeed","params":75}
 ```
+
+Trong dashboard CoreIoT, thêm widget điều khiển kiểu Slider cho thiết bị `esp32_01`, giới hạn 0–100, bước 1. Cấu hình RPC method là `setFanSpeed` và gửi giá trị slider dạng số nguyên trong `params`. Thêm các widget latest-value cho `gesture`, `confidence`, `inference_ms`, `gesture_count` và `fan_speed_percent`. Giá trị tốc độ là lệnh PWM đã đặt; firmware chưa có cảm biến phản hồi tốc độ quay thực tế.
 
 ## 6. Test Mosquitto mà chưa cần sửa ESP32
 
